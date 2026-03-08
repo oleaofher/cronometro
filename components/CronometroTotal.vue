@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { formatarCronometro, normalizarInput } = useTempoFormatter()
+
 interface Props {
   tempo: number
   rodando: boolean
@@ -22,93 +24,41 @@ const tempoAlvoLocal = computed({
 })
 
 const tempoFormatado = computed(() => {
-  return formatarTempo(props.tempo)
+  return formatarCronometro(props.tempo)
 })
 
-function formatarTempo(ms: number): string {
-  const totalSegundos = Math.floor(ms / 1000)
-  const minutos = Math.floor(totalSegundos / 60)
-  const segundos = totalSegundos % 60
-  const milissegundos = Math.floor((ms % 1000) / 10)
-  
-  return `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}.${String(milissegundos).padStart(2, '0')}`
+function aoSairDoCampo() {
+  tempoAlvoLocal.value = normalizarInput(tempoAlvoLocal.value)
 }
 
-function formatarInputTempo(event: Event) {
-  const input = event.target as HTMLInputElement
-  let valor = input.value.replace(/\D/g, '')
-  
-  if (valor.length === 0) {
-    return
+function aoTeclarEnter(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    (event.target as HTMLInputElement).blur()
   }
-  
-  if (valor.length > 4) {
-    valor = valor.slice(0, 4)
-  }
-  
-  if (valor.length <= 2) {
-    tempoAlvoLocal.value = valor
-  } else {
-    const minutos = valor.slice(0, -2)
-    let segundos = valor.slice(-2)
-    
-    const seg = parseInt(segundos)
-    if (seg > 59) {
-      segundos = '59'
-    }
-    
-    tempoAlvoLocal.value = `${minutos}:${segundos}`
-  }
-}
-
-function normalizarTempo() {
-  let valor = tempoAlvoLocal.value.replace(/\D/g, '')
-  
-  if (valor.length === 0) {
-    tempoAlvoLocal.value = '00:00'
-    return
-  }
-  
-  if (valor.length === 1) {
-    valor = '00:0' + valor
-  } else if (valor.length === 2) {
-    valor = '00:' + valor
-  } else if (valor.length === 3) {
-    valor = '0' + valor.slice(0, 1) + ':' + valor.slice(1)
-  } else {
-    const minutos = valor.slice(0, -2)
-    const segundos = valor.slice(-2)
-    valor = minutos + ':' + segundos
-  }
-  
-  const partes = valor.split(':')
-  const seg = parseInt(partes[1] || '0')
-  if (seg > 59) {
-    partes[1] = '59'
-  }
-  
-  tempoAlvoLocal.value = partes.join(':').padStart(5, '0')
 }
 </script>
 
 <template>
-  <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+  <div class="relative bg-gradient-to-b from-white/[0.07] to-transparent rounded-3xl shadow-2xl p-8 border border-white/[0.07] backdrop-blur-sm overflow-hidden">
+    <!-- Card inner glow -->
+    <div class="absolute inset-0 bg-navy-800/90 rounded-3xl -z-10"></div>
+    
     <!-- Display -->
-    <div class="text-center mb-8">
-      <div class="text-7xl font-mono font-bold text-white tracking-wider mb-2">
+    <div class="text-center mb-10">
+      <div class="text-7xl font-share-tech font-bold text-white tracking-wider mb-3 timer-glow-orange-intense">
         {{ tempoFormatado }}
       </div>
-      <div class="text-sm text-purple-200 uppercase tracking-widest">
+      <div class="text-xs font-barlow-condensed text-white/40 uppercase tracking-[0.25em]">
         Tempo Total do Exercício
       </div>
     </div>
 
     <!-- Controles -->
-    <div class="flex gap-3 justify-center mb-4">
+    <div class="flex gap-3 justify-center mb-5">
       <button
         v-if="!rodando"
         @click="emit('iniciar')"
-        class="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-150 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        class="flex-1 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-barlow font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50"
       >
         Iniciar
       </button>
@@ -116,14 +66,14 @@ function normalizarTempo() {
       <button
         v-else
         @click="emit('pausar')"
-        class="flex-1 bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-150 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        class="flex-1 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-barlow font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 animate-pulse-slow ring-2 ring-orange-500/20"
       >
         Pausar
       </button>
       
       <button
         @click="emit('resetar')"
-        class="flex-1 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-150 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        class="flex-1 border-2 border-orange-600/60 hover:border-orange-500 hover:bg-orange-500/10 text-white font-barlow font-semibold py-4 px-6 rounded-xl transition-all duration-200"
       >
         Resetar
       </button>
@@ -133,27 +83,50 @@ function normalizarTempo() {
     <button
       @click="emit('marcarSerie')"
       :disabled="!rodando"
-      class="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-150 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+      class="w-full bg-cyan-600/80 hover:bg-cyan-600 active:bg-cyan-700 disabled:bg-navy-700/30 disabled:cursor-not-allowed disabled:opacity-40 text-white font-barlow font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-cyan-600/25 hover:shadow-cyan-600/45 disabled:shadow-none mb-5"
     >
       Marcar Série
     </button>
 
     <!-- Campo Tempo Entre Séries -->
-    <div class="mt-6 pt-6 border-t border-white/20">
-      <label class="block text-center text-sm text-purple-200 uppercase tracking-wider mb-3">
+    <div class="pt-5 border-t border-white/[0.07]">
+      <label class="block text-center text-xs font-barlow-condensed text-white/40 uppercase tracking-[0.25em] mb-3">
         Tempo Entre Séries
       </label>
       <input
         v-model="tempoAlvoLocal"
-        @input="formatarInputTempo"
-        @blur="normalizarTempo"
+        @blur="aoSairDoCampo"
+        @keydown.enter="aoTeclarEnter"
         type="text"
-        placeholder="Digite segundos ou MM:SS"
-        class="w-full bg-white/10 border border-white/20 rounded-xl py-3 px-4 text-white text-center font-mono text-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+        placeholder="30 ou 1:30"
+        class="w-full bg-navy-700/60 border border-white/20 focus:border-orange-500 rounded-xl py-3 px-4 text-white placeholder:text-white/30 text-center font-share-tech text-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 transition-all"
       />
-      <div class="text-xs text-purple-300/70 text-center mt-2">
-        Digite 90 (90s) ou 1:30 (1min 30s)
+      <div class="text-xs font-barlow text-white/40 text-center mt-2">
+        Digite segundos (90) ou tempo (1:30) e pressione Enter
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.timer-glow-orange-intense {
+  text-shadow: 
+    0 0 10px rgba(249, 115, 22, 0.8),
+    0 0 20px rgba(249, 115, 22, 0.6),
+    0 0 40px rgba(249, 115, 22, 0.4),
+    0 0 80px rgba(249, 115, 22, 0.2);
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { formatarCronometro } = useTempoFormatter()
+
 interface Volta {
   numero: number
   tempoVolta: number
@@ -11,64 +13,74 @@ interface Props {
 }
 
 defineProps<Props>()
-
-function formatarTempo(ms: number): string {
-  const totalSegundos = Math.floor(ms / 1000)
-  const minutos = Math.floor(totalSegundos / 60)
-  const segundos = totalSegundos % 60
-  const milissegundos = Math.floor((ms % 1000) / 10)
-  
-  return `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}.${String(milissegundos).padStart(2, '0')}`
-}
 </script>
 
 <template>
   <div class="flex flex-col space-y-4">
     <!-- Card: Cronômetro da Série Atual -->
-    <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-6 border border-white/20">
+    <div class="relative bg-gradient-to-b from-white/[0.07] to-transparent rounded-3xl shadow-2xl p-8 border border-white/[0.07] backdrop-blur-sm overflow-hidden">
+      <div class="absolute inset-0 bg-navy-800/90 rounded-3xl -z-10"></div>
       <div class="text-center">
-        <div class="text-xs text-purple-200 uppercase tracking-widest mb-2">
+        <div class="text-xs font-barlow-condensed text-white/40 uppercase tracking-[0.25em] mb-3">
           Série Atual
         </div>
         <div 
-          class="text-5xl font-mono font-bold tracking-wider transition-colors duration-300"
-          :class="devePiscar ? 'text-orange-500 animate-pulse' : 'text-green-400'"
+          class="text-6xl font-share-tech font-bold tracking-wider transition-colors duration-300"
+          :class="devePiscar ? 'text-orange-500 animate-pulse timer-glow-orange-intense' : 'text-teal-400 timer-glow-teal-intense'"
         >
-          {{ formatarTempo(tempoSerieAtual) }}
+          {{ formatarCronometro(tempoSerieAtual) }}
         </div>
       </div>
     </div>
 
     <!-- Contador de Séries -->
     <div class="text-center">
-      <div class="text-sm text-purple-200">
+      <div class="text-sm font-barlow text-white/50">
         {{ voltas.length }} {{ voltas.length === 1 ? 'série' : 'séries' }} completas
       </div>
     </div>
 
-    <!-- Lista de Séries (sem scroll, itens soltos) -->
+    <!-- Lista de Séries (pill cards com hierarquia) -->
     <div v-if="voltas.length > 0" class="space-y-3">
       <div
-        v-for="volta in voltas.slice().reverse()"
+        v-for="(volta, index) in voltas.slice().reverse()"
         :key="volta.numero"
-        class="bg-white/10 backdrop-blur-lg rounded-2xl shadow-lg p-4 border border-white/20 hover:bg-white/15 transition-colors"
+        class="relative bg-gradient-to-b from-white/[0.05] to-transparent rounded-2xl shadow-lg p-4 backdrop-blur-sm overflow-hidden transition-all duration-200 hover:from-white/[0.08]"
+        :class="index === 0 ? 'border border-orange-500/30 ring-1 ring-orange-500/10' : 'border border-white/[0.07] hover:border-orange-500/20'"
       >
+        <div class="absolute inset-0 bg-navy-700/60 rounded-2xl -z-10"></div>
         <div class="flex justify-between items-center">
-          <div class="text-purple-300 font-semibold text-sm">
+          <div class="font-barlow font-medium text-sm" :class="index === 0 ? 'text-white/80' : 'text-white/60'">
             Série #{{ volta.numero }}
           </div>
-          <div class="text-white font-mono font-bold text-lg">
-            {{ formatarTempo(volta.tempoVolta) }}
+          <div class="font-share-tech font-bold text-lg" :class="index === 0 ? 'text-white' : 'text-white/90'">
+            {{ formatarCronometro(volta.tempoVolta) }}
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else class="text-center text-purple-300/50 py-8">
+    <div v-else class="text-center text-white/30 py-8">
       <div class="text-4xl mb-3">💪</div>
-      <div class="text-sm">Marque suas séries para acompanhar o descanso</div>
+      <div class="text-sm font-barlow">Marque suas séries para acompanhar o descanso</div>
     </div>
   </div>
 </template>
 
+<style scoped>
+.timer-glow-teal-intense {
+  text-shadow: 
+    0 0 10px rgba(45, 212, 191, 0.8),
+    0 0 20px rgba(45, 212, 191, 0.6),
+    0 0 40px rgba(45, 212, 191, 0.4),
+    0 0 80px rgba(45, 212, 191, 0.2);
+}
 
+.timer-glow-orange-intense {
+  text-shadow: 
+    0 0 10px rgba(249, 115, 22, 0.8),
+    0 0 20px rgba(249, 115, 22, 0.6),
+    0 0 40px rgba(249, 115, 22, 0.4),
+    0 0 80px rgba(249, 115, 22, 0.2);
+}
+</style>

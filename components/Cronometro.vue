@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
+
+const { converterParaMilissegundos } = useTempoFormatter()
+const { registrarAtalhos } = useKeyboardShortcuts()
 
 interface Volta {
   numero: number
@@ -16,12 +19,10 @@ const devePiscar = ref(false)
 
 let intervalId: NodeJS.Timeout | null = null
 let audioContext: AudioContext | null = null
+let removerAtalhos: (() => void) | null = null
 
 const tempoAlvoMs = computed(() => {
-  const partes = tempoAlvo.value.split(':')
-  const minutos = parseInt(partes[0]) || 0
-  const segundos = parseInt(partes[1]) || 0
-  return (minutos * 60 + segundos) * 1000
+  return converterParaMilissegundos(tempoAlvo.value)
 })
 
 watch(tempoSerieAtual, (novoTempo) => {
@@ -127,9 +128,27 @@ function marcarSerie() {
   }, 10)
 }
 
+function iniciarOuMarcarSerie() {
+  if (!rodando.value) {
+    iniciar()
+  } else {
+    marcarSerie()
+  }
+}
+
+onMounted(() => {
+  removerAtalhos = registrarAtalhos({
+    onIniciarOuMarcarSerie: iniciarOuMarcarSerie,
+    onResetar: resetar
+  })
+})
+
 onUnmounted(() => {
   if (intervalId) {
     clearInterval(intervalId)
+  }
+  if (removerAtalhos) {
+    removerAtalhos()
   }
 })
 </script>
