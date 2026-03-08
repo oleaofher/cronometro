@@ -18,8 +18,8 @@ export const useKeyboardShortcuts = () => {
         return
       }
 
-      // Ctrl/Cmd + Space → Resetar
-      if ((event.ctrlKey || event.metaKey) && event.code === 'Space') {
+      // Ctrl + Space → Resetar (mesmo no Mac, para não conflitar com Spotlight)
+      if (event.ctrlKey && event.code === 'Space') {
         event.preventDefault()
         callbacks.onResetar()
         return
