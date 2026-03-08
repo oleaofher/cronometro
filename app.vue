@@ -28,9 +28,7 @@
           <span>Iniciar / Marcar série</span>
         </div>
         <div class="flex items-center gap-2">
-          <kbd class="px-2 py-1 bg-white/5 border border-white/10 rounded font-share-tech text-white/40">Ctrl</kbd>
-          <span>+</span>
-          <kbd class="px-2 py-1 bg-white/5 border border-white/10 rounded font-share-tech text-white/40">Space</kbd>
+          <kbd class="px-2 py-1 bg-white/5 border border-white/10 rounded font-share-tech text-white/40">Esc</kbd>
           <span>Resetar</span>
         </div>
       </div>
